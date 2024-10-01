@@ -141,3 +141,36 @@ Pretty JSON Content:
     "timestamp": "2024-03-15_0159_11"
 }
 """
+
+def get_all_fields(json_data):
+    """Recursively get all fields (keys) from a JSON object."""
+    fields = set()
+    
+    def extract_fields(data):
+        if isinstance(data, dict):
+            for key, value in data.items():
+                fields.add(key)
+                extract_fields(value)
+        elif isinstance(data, list):
+            for item in data:
+                extract_fields(item)
+    
+    extract_fields(json_data)
+    return fields
+
+# Example usage
+fields = get_all_fields(json_data_recovered)
+
+# Convert fields to a list and print it
+fields_list = list(fields)
+print("Fields in JSON:", fields_list)
+
+json_data_recursive = '{"event": "example_event", "details": {"info": "This is an example data dictionary.", "time_start": "2023-09-01_0000_00", "time_end": "2024-09-01_0000_00"}}'
+fields = get_all_fields(json.loads(json_data_recursive))
+
+print("Fields in JSON:", fields)
+
+"""
+Fields in JSON: ['time_start', 'time_end', 'event', 'details', 'timestamp']
+Fields in JSON: {'time_start', 'time_end', 'info', 'event', 'details'}
+"""

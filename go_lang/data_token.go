@@ -20,7 +20,7 @@ func generateRandomTimestamp(start, end string) (string, error) {
 		return "", err
 	}
 
-	randomTime := startTime.Add(time.Duration(rand.Int63n(endTime.UnixNano()-startTime.UnixNano())))
+	randomTime := startTime.Add(time.Duration(rand.Int63n(endTime.UnixNano() - startTime.UnixNano())))
 	return randomTime.Format(layout), nil
 }
 
@@ -113,6 +113,28 @@ func printJSON(data map[string]interface{}) {
 	fmt.Println(string(prettyJSON))
 }
 
+func getAllFields(data interface{}) map[string]bool {
+	fields := make(map[string]bool)
+
+	var extractFields func(data interface{})
+	extractFields = func(data interface{}) {
+		switch v := data.(type) {
+		case map[string]interface{}:
+			for key, value := range v {
+				fields[key] = true
+				extractFields(value)
+			}
+		case []interface{}:
+			for _, item := range v {
+				extractFields(item)
+			}
+		}
+	}
+
+	extractFields(data)
+	return fields
+}
+
 func main() {
 	// Example usage
 	timeStart := "2023-09-01_0000_00"
@@ -146,8 +168,8 @@ func main() {
 	jsonFilename := "data.json"
 
 	dataDict := map[string]string{
-		"event":     "example_event",
-		"details":   "This is an example data dictionary.",
+		"event":      "example_event",
+		"details":    "This is an example data dictionary.",
 		"time_start": timeStart,
 		"time_end":   timeEnd,
 	}
@@ -175,7 +197,7 @@ func main() {
 	}
 
 	// Check field in JSON
-	fieldToLookFor := "time_start"
+	fieldToLookFor := "time_start" // "time_start"
 	fieldValue, err := checkFieldInJSON(jsonFilename, fieldToLookFor)
 	if err != nil {
 		fmt.Println("Error checking field in JSON:", err)
@@ -188,9 +210,21 @@ func main() {
 	}
 
 	// Print JSON file
-	fmt.Println("Pretty JSON Content:")
+	fmt.Println("JSON Content:")
 	printJSON(jsonDataRecovered)
+
+	// Get all fields in the JSON data
+	fields := getAllFields(jsonDataRecovered)
+	fmt.Println("Fields in JSON:")
+	for field := range fields {
+		fmt.Println(field)
+	}
+	
+	// Print fields in a slice
+	//fmt.Println("Fields in JSON:")
+	//fmt.Println(fields)	
 }
+
 
 /*
 Random Timestamp: 2024-01-11_1633_11
@@ -207,7 +241,7 @@ Updated JSON String:
 }
 Data stored in data.json
 Field 'time_start' exists in data.json with value: 2023-09-01_0000_00
-Pretty JSON Content:
+JSON Content:
 {
     "details": "This is an example data dictionary.",
     "event": "example_event",
@@ -215,4 +249,10 @@ Pretty JSON Content:
     "time_start": "2023-09-01_0000_00",
     "timestamp": "2023-12-27_0513_43"
 }
+Fields in JSON:
+details
+event
+time_end
+time_start
+timestamp
 */
