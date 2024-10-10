@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE Example</title>
+</head>
+<body>
+    <h1>Server-Sent Events</h1>
+    <div id="events"></div>
+    <script>
+        const eventSource = new EventSource('/stream');
+        eventSource.onmessage = function(event) {
+            const newElement = document.createElement("div");
+            newElement.innerHTML = "New event: " + event.data;
+            document.getElementById("events").appendChild(newElement);
+        };
+
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('/sw.js').then(function(swReg) {
+                return swReg.pushManager.getSubscription().then(function(subscription) {
+                    if (!subscription) {
+                        return swReg.pushManager.subscribe({userVisibleOnly: true});
+                    }
+                    return subscription;
+                });
+            }).then(function(subscription) {
+                console.log('User is subscribed:', subscription);
+                // Send subscription to the server
+            });
+        }
+    </script>
+</body>
+</html>
